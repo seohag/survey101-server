@@ -57,6 +57,7 @@ exports.login = async function (req, res, next) {
 exports.logout = async function (req, res, next) {
   try {
     res.clearCookie("accessToken", { httpOnly: true });
+    res.clearCookie("refreshToken", { httpOnly: true });
     res.json({ result: true });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
