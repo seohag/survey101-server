@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const CONFIG = require("../constants/config");
+const CONFIG = require("../config/index");
 
 async function mongooseLoader() {
   try {

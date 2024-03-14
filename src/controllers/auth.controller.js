@@ -45,6 +45,10 @@ exports.login = async function (req, res, next) {
         maxAge: ONE_HOUR_IN_MILLISECONDS,
         httpOnly: true,
       })
+      .cookie("refreshToken", refreshToken, {
+        maxAge: ONE_HOUR_IN_MILLISECONDS,
+        httpOnly: true,
+      })
       .json({ result: true, message: "로그인 성공", user });
   } catch (error) {
     error.message = errors.NOT_AUTHORIZED.message;
@@ -58,7 +62,7 @@ exports.logout = async function (req, res, next) {
   try {
     res.clearCookie("accessToken", { httpOnly: true });
     res.clearCookie("refreshToken", { httpOnly: true });
-    res.json({ result: true });
+    res.json({ result: true, message: "로그아웃 성공" });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;

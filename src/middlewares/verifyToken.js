@@ -38,6 +38,8 @@ async function verifyToken(req, res, next) {
           httpOnly: true,
         });
 
+        req.user = decodedToken.userId;
+
         return next();
       }
       req.user = decodedToken.userId;
