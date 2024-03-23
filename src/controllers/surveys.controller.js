@@ -59,6 +59,48 @@ exports.getAllSurveys = async (req, res, next) => {
   }
 };
 
+exports.getSurvey = async (req, res, next) => {
+  const { userid, surveyid } = req.params;
+
+  try {
+    const user = await User.findById(userid);
+
+    if (!user) {
+      const error = new Error(errors.NOT_AUTHORIZED);
+      error.status = errors.NOT_AUTHORIZED;
+
+      next(error);
+    }
+
+    const targetSurvey = await Survey.findById(surveyid).populate("creator");
+
+    if (!targetSurvey) {
+      return res.status(404).json({ error: "존재하지 않는 설문입니다." });
+    }
+
+    const survey = {
+      _id: targetSurvey._id,
+      creator: targetSurvey.creator,
+      title: targetSurvey.title,
+      subtitle: targetSurvey.subtitle,
+      coverImage: targetSurvey.coverImage,
+      startButtonText: targetSurvey.startButtonText,
+      themeColor: targetSurvey.themeColor,
+      buttonShape: targetSurvey.buttonShape,
+      animation: targetSurvey.animation,
+      endingTitle: targetSurvey.endingTitle,
+      endingContent: targetSurvey.endingContent,
+      questions: targetSurvey.questions,
+      createdAt: targetSurvey.createdAt,
+    };
+
+    res.status(201).json(survey);
+  } catch (error) {
+    error.message = errors.INTERNAL_SERVER_ERROR.message;
+    error.status = errors.INTERNAL_SERVER_ERROR.status;
+  }
+};
+
 exports.createSurvey = async (req, res, next) => {
   const { userid } = req.params;
   const survey = req.body;
@@ -77,14 +119,14 @@ exports.createSurvey = async (req, res, next) => {
 
     const uploadPromises = req.files.map(async (file, index) => {
       const url = await uploadImageToS3(file);
+      console.log(url);
 
       uploadedImages[index] = url;
     });
 
     await Promise.all(uploadPromises);
 
-    let coverImageIndex = survey.coverImage === "null" ? 0 : null;
-    let optionImageIndex = 0;
+    let imageIndex = 0;
 
     const newSurvey = new Survey({
       creator: survey.creator,
@@ -97,13 +139,13 @@ exports.createSurvey = async (req, res, next) => {
       endingTitle: survey.endingTitle,
       endingContent: survey.endingContent,
       coverImage:
-        survey.coverImage !== null ? uploadedImages[coverImageIndex] : null,
+        survey.coverImage !== null ? uploadedImages[imageIndex] : null,
       questions: survey.questions?.map((question) => {
         if (question.questionType === "imageChoice") {
           question.options = question.options.map((option) => {
-            option.image = uploadedImages[optionImageIndex];
-            optionImageIndex++;
+            option.image = uploadedImages[imageIndex];
 
+            imageIndex++;
             return option;
           });
         }

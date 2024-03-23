@@ -19,4 +19,17 @@ router.post(
   surveysController.createSurvey,
 );
 
+router.get(
+  "/:userid/surveys/:surveyid",
+  verifyToken,
+  surveysController.getSurvey,
+);
+// router.put(
+//   "/:userid/survey",
+//   verifyToken,
+//   upload.any(),
+//   surveysController.editSurvey,
+// );
+// router.delete("/:userid/survey", verifyToken, surveysController.deleteSurvey);
+
 module.exports = router;
