@@ -119,7 +119,6 @@ exports.createSurvey = async (req, res, next) => {
 
     const uploadPromises = req.files.map(async (file, index) => {
       const url = await uploadImageToS3(file);
-      console.log(url);
 
       uploadedImages[index] = url;
     });
