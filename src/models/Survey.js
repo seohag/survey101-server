@@ -27,6 +27,11 @@ const surveySchema = new mongoose.Schema({
           image: { type: String },
         },
       ],
+      answers: [
+        {
+          answerValue: { type: mongoose.Schema.Types.Mixed },
+        },
+      ],
     },
   ],
   createdAt: { type: Date, default: Date.now },

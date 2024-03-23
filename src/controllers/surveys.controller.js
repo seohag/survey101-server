@@ -98,11 +98,12 @@ exports.createSurvey = async (req, res, next) => {
       endingContent: survey.endingContent,
       coverImage:
         survey.coverImage !== null ? uploadedImages[coverImageIndex] : null,
-      questions: survey.questions.map((question) => {
+      questions: survey.questions?.map((question) => {
         if (question.questionType === "imageChoice") {
           question.options = question.options.map((option) => {
             option.image = uploadedImages[optionImageIndex];
             optionImageIndex++;
+
             return option;
           });
         }
