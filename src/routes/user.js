@@ -24,12 +24,12 @@ router.get(
   verifyToken,
   surveysController.getSurvey,
 );
-// router.put(
-//   "/:userid/survey",
-//   verifyToken,
-//   upload.any(),
-//   surveysController.editSurvey,
-// );
+router.put(
+  "/:userid/surveys/:surveyid",
+  verifyToken,
+  upload.any(),
+  surveysController.editSurvey,
+);
 // router.delete("/:userid/survey", verifyToken, surveysController.deleteSurvey);
 
 module.exports = router;

@@ -14,7 +14,13 @@ const surveySchema = new mongoose.Schema({
   animation: { type: String },
   endingTitle: { type: String },
   endingContent: { type: String },
-  coverImage: { type: String },
+  coverImage: {
+    type: Object,
+    default: {
+      imageUrl: "",
+      imageId: "",
+    },
+  },
   questions: [
     {
       questionId: { type: String },
@@ -24,7 +30,13 @@ const surveySchema = new mongoose.Schema({
         {
           optionId: { type: String },
           text: { type: String },
-          image: { type: String },
+          image: {
+            type: Object,
+            default: {
+              imageUrl: "",
+              imageId: "",
+            },
+          },
         },
       ],
       answers: [
