@@ -32,22 +32,6 @@ async function uploadImageToS3(file) {
   }
 }
 
-async function deleteImageFromS3(imageId) {
-  const deleteObjectCommand = getDeleteObjectCommand(
-    process.env.AWS_BUCKET_NAME,
-    imageId,
-  );
-  const s3Client = getS3Client();
-
-  try {
-    await s3Client.send(deleteObjectCommand);
-
-    console.log(`s3에 있는 ${imageId}가 지워졌습니다.`);
-  } catch (error) {
-    console.error("S3에서 삭제하는데 실패했습니다:", error);
-  }
-}
-
 exports.getAllSurveys = async (req, res, next) => {
   const { userid } = req.params;
 
@@ -80,6 +64,8 @@ exports.getSurvey = async (req, res, next) => {
 
   try {
     const user = await User.findById(userid);
+    const targetSurvey = await Survey.findById(surveyid).populate("creator");
+    console.log(targetSurvey);
 
     if (!user) {
       const error = new Error(errors.NOT_AUTHORIZED);
@@ -87,8 +73,6 @@ exports.getSurvey = async (req, res, next) => {
 
       next(error);
     }
-
-    const targetSurvey = await Survey.findById(surveyid).populate("creator");
 
     if (!targetSurvey) {
       return res.status(404).json({ error: "존재하지 않는 설문입니다." });
@@ -276,6 +260,49 @@ exports.editSurvey = async (req, res, next) => {
     await existingSurvey.save();
 
     res.status(200).json({ success: true, message: "설문 수정 성공" });
+  } catch (error) {
+    error.message = errors.INTERNAL_SERVER_ERROR.message;
+    error.status = errors.INTERNAL_SERVER_ERROR.status;
+  }
+};
+
+async function deleteImageFromS3(imageId) {
+  const deleteObjectCommand = getDeleteObjectCommand(
+    process.env.AWS_BUCKET_NAME,
+    imageId,
+  );
+  const s3Client = getS3Client();
+
+  try {
+    await s3Client.send(deleteObjectCommand);
+
+    console.log(`s3에 있는 ${imageId}가 지워졌습니다.`);
+  } catch (error) {
+    console.error("S3에서 삭제하는데 실패했습니다:", error);
+  }
+}
+
+exports.deleteSurvey = async (req, res, next) => {
+  const { userid, surveyid } = req.params;
+
+  try {
+    const user = await User.findById(userid);
+    const targetSurvey = await Survey.findById(surveyid).populate("creator");
+
+    if (!user) {
+      const error = new Error(errors.NOT_AUTHORIZED);
+      error.status = errors.NOT_AUTHORIZED;
+
+      next(error);
+    }
+
+    if (!targetSurvey) {
+      return res.status(404).json({ error: "존재하지 않는 설문입니다." });
+    }
+
+    await Survey.findByIdAndDelete(surveyid);
+
+    res.status(200).json({ success: true });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;

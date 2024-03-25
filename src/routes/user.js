@@ -30,6 +30,10 @@ router.put(
   upload.any(),
   surveysController.editSurvey,
 );
-// router.delete("/:userid/survey", verifyToken, surveysController.deleteSurvey);
+router.delete(
+  "/:userid/surveys/:surveyid",
+  verifyToken,
+  surveysController.deleteSurvey,
+);
 
 module.exports = router;
