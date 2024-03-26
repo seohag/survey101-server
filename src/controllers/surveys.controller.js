@@ -64,8 +64,7 @@ exports.getSurvey = async (req, res, next) => {
 
   try {
     const user = await User.findById(userid);
-    const targetSurvey = await Survey.findById(surveyid).populate("creator");
-    console.log(targetSurvey);
+    const targetSurvey = await Survey.findById(surveyid);
 
     if (!user) {
       const error = new Error(errors.NOT_AUTHORIZED);
@@ -167,11 +166,10 @@ exports.createSurvey = async (req, res, next) => {
       }),
     });
 
-    const surveyId = newSurvey._id;
-    const surveyUrl = `http://localhost:5173/form/${surveyId}`;
-
     await newSurvey.save();
 
+    const surveyId = newSurvey._id;
+    const surveyUrl = `http://localhost:5173/form/${surveyId}`;
     res
       .status(201)
       .json({ success: true, message: "설문 생성 성공", url: surveyUrl });
@@ -259,7 +257,11 @@ exports.editSurvey = async (req, res, next) => {
 
     await existingSurvey.save();
 
-    res.status(200).json({ success: true, message: "설문 수정 성공" });
+    const surveyUrl = `http://localhost:5173/form/${surveyid}`;
+
+    res
+      .status(200)
+      .json({ success: true, message: "설문 수정 성공", url: surveyUrl });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;
