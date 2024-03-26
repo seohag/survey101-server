@@ -9,7 +9,10 @@ exports.getPublicSurvey = async (req, res, next) => {
     const targetSurvey = await Survey.findById(surveyId);
 
     if (!targetSurvey) {
-      return res.status(404).json({ error: "존재하지 않는 설문입니다." });
+      const error = new Error(errors.INTERNAL_SERVER_ERROR);
+      error.status = errors.INTERNAL_SERVER_ERROR;
+
+      next(error);
     }
 
     const survey = {
@@ -63,6 +66,38 @@ exports.submitResponse = async (req, res, next) => {
     await survey.save();
 
     res.status(201).json({ success: true, message: "응답이 저장되었습니다." });
+  } catch (error) {
+    error.message = errors.INTERNAL_SERVER_ERROR.message;
+    error.status = errors.INTERNAL_SERVER_ERROR.status;
+  }
+};
+
+exports.getSurveyResponses = async (req, res, next) => {
+  const { surveyId } = req.params;
+
+  try {
+    const targetSurvey = await Survey.findById(surveyId);
+
+    if (!targetSurvey) {
+      return res.status(404).json({ error: "존재하지 않는 설문입니다." });
+    }
+
+    const responses = [];
+
+    targetSurvey.questions.forEach((question) => {
+      question.answers.forEach((answer) => {
+        responses.push({
+          questionText: question.questionText,
+          answerValue: answer.answerValue,
+        });
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "설문 응답 데이터를 성공적으로 가져왔습니다.",
+      responses: responses,
+    });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;
