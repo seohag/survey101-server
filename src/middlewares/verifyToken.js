@@ -9,7 +9,7 @@ const {
 } = require("../utils/jwtUtils");
 
 const User = require("../models/User");
-const { ONE_HOUR_IN_MILLISECONDS } = require("../constants/jwtContants");
+const { TWO_HOUR_IN_MILLISECONDS } = require("../constants/jwtContants");
 
 async function verifyToken(req, res, next) {
   try {
@@ -34,7 +34,7 @@ async function verifyToken(req, res, next) {
         const newAccessToken = generateAccessToken(decodedToken.userId);
 
         res.status(201).cookie("accessToken", newAccessToken, {
-          maxAge: ONE_HOUR_IN_MILLISECONDS,
+          maxAge: TWO_HOUR_IN_MILLISECONDS,
           httpOnly: true,
         });
 

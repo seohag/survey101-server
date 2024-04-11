@@ -5,7 +5,7 @@ const CONFIG = require("../config/index");
 
 exports.generateAccessToken = (user) => {
   return jwt.sign({ userId: user._id }, CONFIG.SECRET_KEY, {
-    expiresIn: "1h",
+    expiresIn: "2h",
   });
 };
 

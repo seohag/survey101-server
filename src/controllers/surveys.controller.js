@@ -2,7 +2,6 @@ const { v4: uuidv4 } = require("uuid");
 
 const {
   getS3Client,
-  getGetObjectCommand,
   getDeleteObjectCommand,
   getPutObjectCommand,
 } = require("../config/s3Config");
@@ -29,6 +28,22 @@ async function uploadImageToS3(file) {
     return { imageId, imageUrl };
   } catch (error) {
     console.error("S3에 업로드 하는데 실패:", error);
+  }
+}
+
+async function deleteImageFromS3(imageId) {
+  const deleteObjectCommand = getDeleteObjectCommand(
+    process.env.AWS_BUCKET_NAME,
+    imageId,
+  );
+  const s3Client = getS3Client();
+
+  try {
+    await s3Client.send(deleteObjectCommand);
+
+    console.log(`s3에 있는 ${imageId}가 지워졌습니다.`);
+  } catch (error) {
+    console.error("S3에서 삭제하는데 실패했습니다:", error);
   }
 }
 
@@ -120,6 +135,7 @@ exports.createSurvey = async (req, res, next) => {
     if (req.files.length > 0) {
       const uploadPromises = req.files.map(async (file, index) => {
         const imageObj = await uploadImageToS3(file);
+
         uploadedImagesIDs[index] = imageObj.imageId;
         uploadedImages[imageObj.imageId] = imageObj.imageUrl;
       });
@@ -127,7 +143,7 @@ exports.createSurvey = async (req, res, next) => {
       await Promise.all(uploadPromises);
     }
 
-    let optionIndex =
+    let imageOptionIndex =
       (req.files[0] && req.files[0].fieldname) === "coverImage" ? 1 : 0;
 
     const newSurvey = new Survey({
@@ -150,13 +166,13 @@ exports.createSurvey = async (req, res, next) => {
         : null,
       questions: survey.questions?.map((question) => {
         if (question.questionType === "imageChoice") {
-          question.options = question.options.map((option) => {
+          question.options = question.options?.map((option) => {
             option.image = {
-              imageUrl: uploadedImages[uploadedImagesIDs[optionIndex]],
-              imageId: uploadedImagesIDs[optionIndex],
+              imageUrl: uploadedImages[uploadedImagesIDs[imageOptionIndex]],
+              imageId: uploadedImagesIDs[imageOptionIndex],
             };
 
-            optionIndex++;
+            imageOptionIndex++;
 
             return option;
           });
@@ -185,7 +201,7 @@ exports.editSurvey = async (req, res, next) => {
 
   try {
     const user = await User.findById(userid);
-    const existingSurvey = await Survey.findById(surveyid);
+    const existingSurveyData = await Survey.findById(surveyid);
 
     if (!user) {
       const error = new Error(errors.NOT_AUTHORIZED);
@@ -194,7 +210,7 @@ exports.editSurvey = async (req, res, next) => {
       next(error);
     }
 
-    if (!updatedSurveyData || !existingSurvey) {
+    if (!updatedSurveyData || !existingSurveyData) {
       const error = new Error(errors.INTERNAL_SERVER_ERROR);
       error.status = errors.INTERNAL_SERVER_ERROR;
 
@@ -202,87 +218,291 @@ exports.editSurvey = async (req, res, next) => {
     }
 
     const uploadedImages = {};
-    const uploadedImagesIDs = {};
-    const oldImagesToDelete = {};
-    const oldImageIDsToDelete = {};
+    const uploadedImageIDs = {};
 
-    existingSurvey.title = updatedSurveyData.title;
-    existingSurvey.subtitle = updatedSurveyData.subtitle;
-    existingSurvey.startButtonText = updatedSurveyData.startButtonText;
-    existingSurvey.themeColor = updatedSurveyData.themeColor;
-    existingSurvey.buttonShape = updatedSurveyData.buttonShape;
-    existingSurvey.animation = updatedSurveyData.animation;
-    existingSurvey.endingTitle = updatedSurveyData.endingTitle;
-    existingSurvey.endingContent = updatedSurveyData.endingContent;
-    existingSurvey.questions = updatedSurveyData.questions;
+    const existingImages = {};
+    const existingImageIDs = {};
 
-    let optionIndex =
-      (req.files[0] && req.files[0].fieldname) === "coverImage" ? 1 : 0;
+    existingSurveyData.questions?.forEach((question) => {
+      if (question.questionType === "imageChoice") {
+        question.options.forEach((option) => {
+          if (option.image && option.image.imageId) {
+            existingImages[option.image.imageId] = option.image.imageUrl;
+            existingImageIDs[option.image.imageId] = option.image.imageId;
+          }
+        });
+      }
+    });
 
     if (req.files.length > 0) {
       const uploadPromises = req.files.map(async (file, index) => {
         const imageObj = await uploadImageToS3(file);
-        uploadedImagesIDs[index] = imageObj.imageId;
+        uploadedImageIDs[index] = imageObj.imageId;
         uploadedImages[imageObj.imageId] = imageObj.imageUrl;
       });
 
       await Promise.all(uploadPromises);
-
-      if (req.files[0].fieldname === "coverImage") {
-        existingSurvey.coverImage = {
-          imageUrl: uploadedImages[uploadedImagesIDs[0]],
-          imageId: uploadedImagesIDs[0],
-        };
-      }
-
-      existingSurvey.questions?.map((question) => {
-        if (question.questionType === "imageChoice") {
-          question.options = question.options.map((option) => {
-            if (option.image) {
-              option.image = {
-                imageUrl: uploadedImages[uploadedImagesIDs[optionIndex]],
-                imageId: uploadedImagesIDs[optionIndex],
-              };
-            }
-
-            optionIndex++;
-
-            return option;
-          });
-        }
-
-        return question;
-      });
     }
 
-    await existingSurvey.save();
+    existingSurveyData.title =
+      updatedSurveyData.title || existingSurveyData.title;
+    existingSurveyData.subtitle =
+      updatedSurveyData.subtitle || existingSurveyData.subtitle;
+    existingSurveyData.startButtonText =
+      updatedSurveyData.startButtonText || existingSurveyData.startButtonText;
+    existingSurveyData.themeColor =
+      updatedSurveyData.themeColor || existingSurveyData.themeColor;
+    existingSurveyData.buttonShape =
+      updatedSurveyData.buttonShape || existingSurveyData.buttonShape;
+    existingSurveyData.animation =
+      updatedSurveyData.animation || existingSurveyData.animation;
+    existingSurveyData.endingTitle =
+      updatedSurveyData.endingTitle || existingSurveyData.endingTitle;
+    existingSurveyData.endingContent =
+      updatedSurveyData.endingContent || existingSurveyData.endingContent;
+
+    if (req.files.length > 0 && req.files[0].fieldname === "coverImage") {
+      existingSurveyData.coverImage = {
+        imageUrl: uploadedImages[uploadedImageIDs[0]],
+        imageId: uploadedImageIDs[0],
+      };
+    }
+
+    let imageOptionIndex =
+      (req.files[0] && req.files[0].fieldname) === "coverImage" ? "1" : "0";
+
+    existingSurveyData.questions?.forEach((question, index) => {
+      if (question.questionType === "imageChoice") {
+        const questionIndex = index;
+
+        question.options.forEach((option) => {
+          const existingImageCounts = Object.values(existingImages).length;
+          const newUploadImageCounts = req.files.length;
+
+          if (newUploadImageCounts) {
+            for (
+              let sequence = existingImageCounts;
+              sequence < existingImageCounts + newUploadImageCounts;
+              sequence++
+            ) {
+              const uploadedImage =
+                uploadedImages[uploadedImageIDs[imageOptionIndex]];
+
+              const newOptions = {
+                optionId: option.optionId,
+                image: option.image,
+                _id: option._id,
+              };
+
+              if (uploadedImage) {
+                newOptions.image = {
+                  imageUrl: uploadedImages[uploadedImageIDs[imageOptionIndex]],
+                  imageId: uploadedImageIDs[imageOptionIndex],
+                };
+
+                imageOptionIndex++;
+              }
+
+              existingSurveyData.questions[questionIndex].options.push(
+                newOptions,
+              );
+            }
+          }
+        });
+      }
+    });
+
+    await existingSurveyData.save();
 
     const surveyUrl = `http://localhost:5173/form/${surveyid}`;
-
     res
       .status(200)
       .json({ success: true, message: "설문 수정 성공", url: surveyUrl });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;
+    next(error);
   }
 };
 
-async function deleteImageFromS3(imageId) {
-  const deleteObjectCommand = getDeleteObjectCommand(
-    process.env.AWS_BUCKET_NAME,
-    imageId,
-  );
-  const s3Client = getS3Client();
+// exports.editSurvey = async (req, res, next) => {
+//   const { userid, surveyid } = req.params;
+//   const updatedSurveyData = req.body;
 
-  try {
-    await s3Client.send(deleteObjectCommand);
+//   try {
+//     const user = await User.findById(userid);
+//     const existingSurveyData = await Survey.findById(surveyid);
 
-    console.log(`s3에 있는 ${imageId}가 지워졌습니다.`);
-  } catch (error) {
-    console.error("S3에서 삭제하는데 실패했습니다:", error);
-  }
-}
+//     if (!user) {
+//       const error = new Error(errors.NOT_AUTHORIZED);
+//       error.status = errors.NOT_AUTHORIZED;
+//       next(error);
+//     }
+
+//     if (!updatedSurveyData || !existingSurveyData) {
+//       const error = new Error(errors.INTERNAL_SERVER_ERROR);
+//       error.status = errors.INTERNAL_SERVER_ERROR;
+
+//       next(error);
+//     }
+
+//     existingSurveyData.title =
+//       updatedSurveyData.title || existingSurveyData.title;
+//     existingSurveyData.subtitle =
+//       updatedSurveyData.subtitle || existingSurveyData.subtitle;
+//     existingSurveyData.startButtonText =
+//       updatedSurveyData.startButtonText || existingSurveyData.startButtonText;
+//     existingSurveyData.themeColor =
+//       updatedSurveyData.themeColor || existingSurveyData.themeColor;
+//     existingSurveyData.buttonShape =
+//       updatedSurveyData.buttonShape || existingSurveyData.buttonShape;
+//     existingSurveyData.animation =
+//       updatedSurveyData.animation || existingSurveyData.animation;
+//     existingSurveyData.endingTitle =
+//       updatedSurveyData.endingTitle || existingSurveyData.endingTitle;
+//     existingSurveyData.endingContent =
+//       updatedSurveyData.endingContent || existingSurveyData.endingContent;
+
+//     if (req.files && req.files.length > 0) {
+//       const coverImageIndex = req.files.findIndex(
+//         (file) => file.fieldname === "coverImage",
+//       );
+
+//       if (coverImageIndex !== -1) {
+//         const coverImage = req.files[coverImageIndex];
+//         const coverImageObj = await uploadImageToS3(coverImage);
+
+//         existingSurveyData.coverImage = {
+//           imageUrl: coverImageObj.imageUrl,
+//           imageId: coverImageObj.imageId,
+//         };
+//       }
+//     }
+
+//     const existingSurveyQuestions = existingSurveyData.questions;
+//     const updatedSurveyQuestions = updatedSurveyData.questions;
+
+//     // 질문 삭제 로직
+//     const deletedQuestionIds = existingSurveyQuestions
+//       .filter(
+//         (question) =>
+//           !updatedSurveyQuestions.some(
+//             (updatedQuestion) =>
+//               updatedQuestion.questionId === question.questionId,
+//           ),
+//       )
+//       .map((question) => question._id);
+
+//     if (deletedQuestionIds.length > 0) {
+//       await Survey.findByIdAndUpdate(
+//         existingSurveyData._id,
+//         { $pull: { questions: { _id: { $in: deletedQuestionIds } } } },
+//         { new: true },
+//       );
+//     }
+
+//     await existingSurveyData.save();
+
+//     const surveyUrl = `http://localhost:5173/form/${surveyid}`;
+//     res
+//       .status(201)
+//       .json({ success: true, message: "설문 수정 성공", url: surveyUrl });
+//   } catch (error) {
+//     error.message = errors.INTERNAL_SERVER_ERROR.message;
+//     error.status = errors.INTERNAL_SERVER_ERROR.status;
+//     next(error);
+//   }
+// };
+
+// exports.editSurvey = async (req, res, next) => {
+//   const { userid, surveyid } = req.params;
+//   const updatedSurveyData = req.body;
+
+//   try {
+//     const user = await User.findById(userid);
+//     const existingSurvey = await Survey.findById(surveyid);
+
+//     if (!user) {
+//       const error = new Error(errors.NOT_AUTHORIZED);
+//       error.status = errors.NOT_AUTHORIZED;
+
+//       next(error);
+//     }
+
+//     if (!updatedSurveyData || !existingSurvey) {
+//       const error = new Error(errors.INTERNAL_SERVER_ERROR);
+//       error.status = errors.INTERNAL_SERVER_ERROR;
+
+//       next(error);
+//     }
+
+//     const existingImages = {};
+//     const existingImageIDs = {};
+
+//     const uploadedImages = {};
+//     const uploadedImagesIDs = {};
+
+//     existingSurvey.questions?.forEach((question) => {
+//       if (question.questionType === "imageChoice") {
+//         question.options.forEach((option) => {
+//           if (option.image && option.image.imageId) {
+//             existingImages[option.image.imageId] = option.image.imageUrl;
+//             existingImageIDs[option.image.imageId] = option.image.imageId;
+//           }
+//         });
+//       }
+//     });
+
+//     let imageOptionIndex =
+//       (req.files[0] && req.files[0].fieldname) === "coverImage" ? 1 : 0;
+
+//     if (req.files.length > 0) {
+//       const uploadPromises = req.files.map(async (file, index) => {
+//         const imageObj = await uploadImageToS3(file);
+
+//         uploadedImagesIDs[index] = imageObj.imageId;
+//         uploadedImages[imageObj.imageId] = imageObj.imageUrl;
+//       });
+
+//       await Promise.all(uploadPromises);
+//     }
+
+//     existingSurveyData.title =
+//       updatedSurveyData.title || existingSurveyData.title;
+//     existingSurveyData.subtitle =
+//       updatedSurveyData.subtitle || existingSurveyData.subtitle;
+//     existingSurveyData.startButtonText =
+//       updatedSurveyData.startButtonText || existingSurveyData.startButtonText;
+//     existingSurveyData.themeColor =
+//       updatedSurveyData.themeColor || existingSurveyData.themeColor;
+//     existingSurveyData.buttonShape =
+//       updatedSurveyData.buttonShape || existingSurveyData.buttonShape;
+//     existingSurveyData.animation =
+//       updatedSurveyData.animation || existingSurveyData.animation;
+//     existingSurveyData.endingTitle =
+//       updatedSurveyData.endingTitle || existingSurveyData.endingTitle;
+//     existingSurveyData.endingContent =
+//       updatedSurveyData.endingContent || existingSurveyData.endingContent;
+
+//     if (req.files.length > 0 && req.files[0].fieldname === "coverImage") {
+//       existingSurvey.coverImage = {
+//         imageUrl: uploadedImages[uploadedImagesIDs[0]],
+//         imageId: uploadedImagesIDs[0],
+//       };
+//     }
+
+//     await existingSurvey.save();
+
+//     const surveyUrl = `http://localhost:5173/form/${surveyid}`;
+
+//     res
+//       .status(201)
+//       .json({ success: true, message: "설문 수정 성공", url: surveyUrl });
+//   } catch (error) {
+//     error.message = errors.INTERNAL_SERVER_ERROR.message;
+//     error.status = errors.INTERNAL_SERVER_ERROR.status;
+//   }
+// };
 
 exports.deleteSurvey = async (req, res, next) => {
   const { userid, surveyid } = req.params;

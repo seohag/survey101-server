@@ -5,7 +5,7 @@ const {
   generateRefreshToken,
 } = require("../utils/jwtUtils");
 
-const { ONE_HOUR_IN_MILLISECONDS } = require("../constants/jwtContants");
+const { TWO_HOUR_IN_MILLISECONDS } = require("../constants/jwtContants");
 
 exports.check = async function (req, res, next) {
   if (!req.user) {
@@ -42,11 +42,11 @@ exports.login = async function (req, res, next) {
     res
       .status(201)
       .cookie("accessToken", accessToken, {
-        maxAge: ONE_HOUR_IN_MILLISECONDS,
+        maxAge: TWO_HOUR_IN_MILLISECONDS,
         httpOnly: true,
       })
       .cookie("refreshToken", refreshToken, {
-        maxAge: ONE_HOUR_IN_MILLISECONDS,
+        maxAge: TWO_HOUR_IN_MILLISECONDS,
         httpOnly: true,
       })
       .json({ result: true, message: "로그인 성공", user });

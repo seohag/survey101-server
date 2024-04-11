@@ -7,7 +7,7 @@ async function routerLoader(app) {
   app.use("/", indexRouter);
   app.use("/auth", authRouter);
   app.use("/user", userRouter);
-  app.use("/", responseRouter);
+  app.use("/response", responseRouter);
 }
 
 module.exports = routerLoader;
