@@ -185,7 +185,7 @@ exports.createSurvey = async (req, res, next) => {
     await newSurvey.save();
 
     const surveyId = newSurvey._id;
-    const surveyUrl = `http://localhost:5173/form/${surveyId}`;
+    const surveyUrl = `${process.env.CLIENT_URL}/form/${surveyId}`;
     res
       .status(201)
       .json({ success: true, message: "설문 생성 성공", url: surveyUrl });
@@ -314,7 +314,7 @@ exports.editSurvey = async (req, res, next) => {
 
     await existingSurveyData.save();
 
-    const surveyUrl = `http://localhost:5173/form/${surveyid}`;
+    const surveyUrl = `${process.env.CLIENT_URL}/form/${surveyid}`;
     res
       .status(200)
       .json({ success: true, message: "설문 수정 성공", url: surveyUrl });
