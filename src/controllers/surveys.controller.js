@@ -11,9 +11,9 @@ const Survey = require("../models/Survey");
 
 const errors = require("../constants/error");
 
-async function uploadImageToS3(file) {
+async function uploadImageToS3(file, optionId) {
   const s3Client = getS3Client();
-  const imageId = uuidv4();
+  const imageId = optionId || uuidv4();
   const bucketName = process.env.AWS_BUCKET_NAME;
   const putObjectCommand = getPutObjectCommand(
     bucketName,
@@ -36,6 +36,7 @@ async function deleteImageFromS3(imageId) {
     process.env.AWS_BUCKET_NAME,
     imageId,
   );
+
   const s3Client = getS3Client();
 
   try {
@@ -117,7 +118,7 @@ exports.getSurvey = async (req, res, next) => {
 
 exports.createSurvey = async (req, res, next) => {
   const { userid } = req.params;
-  const survey = req.body;
+  const surveyData = req.body;
 
   try {
     const user = await User.findById(userid);
@@ -133,11 +134,17 @@ exports.createSurvey = async (req, res, next) => {
     const uploadedImagesIDs = {};
 
     if (req.files.length > 0) {
-      const uploadPromises = req.files.map(async (file, index) => {
-        const imageObj = await uploadImageToS3(file);
+      const imageOptionIds = surveyData.questions
+        .filter((question) => question.questionType === "imageChoice")
+        .flatMap((question) =>
+          question.options.map((option) => option.optionId),
+        );
 
-        uploadedImagesIDs[index] = imageObj.imageId;
+      const uploadPromises = req.files.map(async (file, index) => {
+        const imageObj = await uploadImageToS3(file, imageOptionIds[index]);
+
         uploadedImages[imageObj.imageId] = imageObj.imageUrl;
+        uploadedImagesIDs[index] = imageObj.imageId;
       });
 
       await Promise.all(uploadPromises);
@@ -147,15 +154,15 @@ exports.createSurvey = async (req, res, next) => {
       (req.files[0] && req.files[0].fieldname) === "coverImage" ? 1 : 0;
 
     const newSurvey = new Survey({
-      creator: survey.creator,
-      title: survey.title,
-      subtitle: survey.subtitle,
-      startButtonText: survey.startButtonText,
-      themeColor: survey.themeColor,
-      buttonShape: survey.buttonShape,
-      animation: survey.animation,
-      endingTitle: survey.endingTitle,
-      endingContent: survey.endingContent,
+      creator: surveyData.creator,
+      title: surveyData.title,
+      subtitle: surveyData.subtitle,
+      startButtonText: surveyData.startButtonText,
+      themeColor: surveyData.themeColor,
+      buttonShape: surveyData.buttonShape,
+      animation: surveyData.animation,
+      endingTitle: surveyData.endingTitle,
+      endingContent: surveyData.endingContent,
       coverImage: req.files
         ? (req.files[0] && req.files[0].fieldname) === "coverImage"
           ? {
@@ -164,9 +171,10 @@ exports.createSurvey = async (req, res, next) => {
             }
           : null
         : null,
-      questions: survey.questions?.map((question) => {
+      questions: surveyData.questions?.map((question) => {
         if (question.questionType === "imageChoice") {
           question.options = question.options?.map((option) => {
+            option.optionId = uploadedImagesIDs[imageOptionIndex];
             option.image = {
               imageUrl: uploadedImages[uploadedImagesIDs[imageOptionIndex]],
               imageId: uploadedImagesIDs[imageOptionIndex],
@@ -218,31 +226,63 @@ exports.editSurvey = async (req, res, next) => {
     }
 
     const uploadedImages = {};
-    const uploadedImageIDs = {};
-
-    const existingImages = {};
-    const existingImageIDs = {};
-
-    existingSurveyData.questions?.forEach((question) => {
-      if (question.questionType === "imageChoice") {
-        question.options.forEach((option) => {
-          if (option.image && option.image.imageId) {
-            existingImages[option.image.imageId] = option.image.imageUrl;
-            existingImageIDs[option.image.imageId] = option.image.imageId;
-          }
-        });
-      }
-    });
+    const uploadedImagesIDs = {};
 
     if (req.files.length > 0) {
+      const imageOptionIds = updatedSurveyData.questions
+        .filter((question) => question.questionType === "imageChoice")
+        .flatMap((question) =>
+          question.options
+            .filter((option) => !option.image)
+            .map((option) => option.optionId),
+        );
+
+      if (req.files[0].fieldname === "coverImage") {
+        const newCoverImage = req.files.shift();
+        const coverImageObj = await uploadImageToS3(newCoverImage);
+
+        existingSurveyData.coverImage = {
+          imageUrl: coverImageObj.imageUrl,
+          imageId: coverImageObj.imageId,
+        };
+      }
+
       const uploadPromises = req.files.map(async (file, index) => {
-        const imageObj = await uploadImageToS3(file);
-        uploadedImageIDs[index] = imageObj.imageId;
+        const imageObj = await uploadImageToS3(file, imageOptionIds[index]);
+
         uploadedImages[imageObj.imageId] = imageObj.imageUrl;
+        uploadedImagesIDs[index] = imageObj.imageId;
       });
 
       await Promise.all(uploadPromises);
     }
+
+    const newUpdatedSurveyData = updatedSurveyData;
+
+    newUpdatedSurveyData.questions = updatedSurveyData.questions.map(
+      (question) => {
+        if (question.questionType === "imageChoice") {
+          const newQuestion = question;
+          newQuestion.options = question.options.map((option) => {
+            if (!option.image && uploadedImages[option.optionId]) {
+              const newOption = option;
+              newOption.image = {
+                imageUrl: uploadedImages[option.optionId],
+                optionId: option.optionId,
+              };
+
+              return newOption;
+            }
+
+            return option;
+          });
+
+          return newQuestion;
+        }
+
+        return question;
+      },
+    );
 
     existingSurveyData.title =
       updatedSurveyData.title || existingSurveyData.title;
@@ -260,68 +300,19 @@ exports.editSurvey = async (req, res, next) => {
       updatedSurveyData.endingTitle || existingSurveyData.endingTitle;
     existingSurveyData.endingContent =
       updatedSurveyData.endingContent || existingSurveyData.endingContent;
+    existingSurveyData.questions =
+      newUpdatedSurveyData.questions || existingSurveyData.questions;
 
-    if (req.files.length > 0 && req.files[0].fieldname === "coverImage") {
-      existingSurveyData.coverImage = {
-        imageUrl: uploadedImages[uploadedImageIDs[0]],
-        imageId: uploadedImageIDs[0],
-      };
-    }
-
-    let imageOptionIndex =
-      (req.files[0] && req.files[0].fieldname) === "coverImage" ? "1" : "0";
-
-    existingSurveyData.questions?.forEach((question, index) => {
-      if (question.questionType === "imageChoice") {
-        const questionIndex = index;
-
-        question.options.forEach((option) => {
-          const existingImageCounts = Object.values(existingImages).length;
-          const newUploadImageCounts = req.files.length;
-
-          if (newUploadImageCounts) {
-            for (
-              let sequence = existingImageCounts;
-              sequence < existingImageCounts + newUploadImageCounts;
-              sequence++
-            ) {
-              const uploadedImage =
-                uploadedImages[uploadedImageIDs[imageOptionIndex]];
-
-              const newOptions = {
-                optionId: option.optionId,
-                image: option.image,
-                _id: option._id,
-              };
-
-              if (uploadedImage) {
-                newOptions.image = {
-                  imageUrl: uploadedImages[uploadedImageIDs[imageOptionIndex]],
-                  imageId: uploadedImageIDs[imageOptionIndex],
-                };
-
-                imageOptionIndex++;
-              }
-
-              existingSurveyData.questions[questionIndex].options.push(
-                newOptions,
-              );
-            }
-          }
-        });
-      }
-    });
+    const surveyUrl = `${process.env.CLIENT_URL}/form/${surveyid}`;
 
     await existingSurveyData.save();
 
-    const surveyUrl = `${process.env.CLIENT_URL}/form/${surveyid}`;
     res
       .status(200)
       .json({ success: true, message: "설문 수정 성공", url: surveyUrl });
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;
-    next(error);
   }
 };
 
