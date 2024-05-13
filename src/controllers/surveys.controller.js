@@ -238,6 +238,13 @@ exports.editSurvey = async (req, res, next) => {
         );
 
       if (req.files[0].fieldname === "coverImage") {
+        if (
+          existingSurveyData.coverImage &&
+          existingSurveyData.coverImage.imageId
+        ) {
+          await deleteImageFromS3(existingSurveyData.coverImage.imageId);
+        }
+
         const newCoverImage = req.files.shift();
         const coverImageObj = await uploadImageToS3(newCoverImage);
 
@@ -263,6 +270,7 @@ exports.editSurvey = async (req, res, next) => {
       (question) => {
         if (question.questionType === "imageChoice") {
           const newQuestion = question;
+
           newQuestion.options = question.options.map((option) => {
             if (!option.image && uploadedImages[option.optionId]) {
               const newOption = option;
