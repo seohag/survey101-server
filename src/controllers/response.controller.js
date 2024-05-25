@@ -1,5 +1,4 @@
 const Survey = require("../models/Survey");
-
 const errors = require("../constants/error");
 
 exports.getPublicSurvey = async (req, res, next) => {

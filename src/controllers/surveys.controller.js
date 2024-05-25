@@ -1,14 +1,11 @@
 const { v4: uuidv4 } = require("uuid");
-
 const {
   getS3Client,
   getDeleteObjectCommand,
   getPutObjectCommand,
 } = require("../config/s3Config");
-
 const User = require("../models/User");
 const Survey = require("../models/Survey");
-
 const errors = require("../constants/error");
 
 async function uploadImageToS3(file, optionId) {
@@ -274,6 +271,7 @@ exports.editSurvey = async (req, res, next) => {
           newQuestion.options = question.options.map((option) => {
             if (!option.image && uploadedImages[option.optionId]) {
               const newOption = option;
+
               newOption.image = {
                 imageUrl: uploadedImages[option.optionId],
                 optionId: option.optionId,
@@ -291,6 +289,27 @@ exports.editSurvey = async (req, res, next) => {
         return question;
       },
     );
+
+    existingSurveyData.questions.forEach((existingQuestion) => {
+      if (existingQuestion.questionType === "imageChoice") {
+        existingQuestion.options.forEach(async (existingOption) => {
+          const updatedOption = newUpdatedSurveyData.questions
+            .find(
+              (question) => question.questionId === existingQuestion.questionId,
+            )
+            .options.find(
+              (option) => option.optionId === existingOption.optionId,
+            );
+
+          if (
+            !updatedOption ||
+            existingOption.optionId !== updatedOption.optionId
+          ) {
+            await deleteImageFromS3(existingOption.optionId);
+          }
+        });
+      }
+    });
 
     existingSurveyData.title =
       updatedSurveyData.title || existingSurveyData.title;
@@ -341,6 +360,14 @@ exports.deleteSurvey = async (req, res, next) => {
     if (!targetSurvey) {
       return res.status(404).json({ error: "존재하지 않는 설문입니다." });
     }
+
+    targetSurvey.questions.forEach((question) => {
+      question.options.forEach(async (option) => {
+        if (option.image && option.image.optionId) {
+          await deleteImageFromS3(option.image.optionId);
+        }
+      });
+    });
 
     await Survey.findByIdAndDelete(surveyid);
 
