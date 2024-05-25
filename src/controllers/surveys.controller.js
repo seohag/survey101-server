@@ -297,7 +297,7 @@ exports.editSurvey = async (req, res, next) => {
             .find(
               (question) => question.questionId === existingQuestion.questionId,
             )
-            .options.find(
+            ?.options.find(
               (option) => option.optionId === existingOption.optionId,
             );
 
