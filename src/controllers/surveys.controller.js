@@ -290,6 +290,20 @@ exports.editSurvey = async (req, res, next) => {
       },
     );
 
+    newUpdatedSurveyData.questions = newUpdatedSurveyData.questions.map(
+      (updatedQuestion) => {
+        const existingQuestion = existingSurveyData.questions.find(
+          (question) => question.questionId === updatedQuestion.questionId,
+        );
+
+        if (existingQuestion && existingQuestion.answers) {
+          updatedQuestion.answers = existingQuestion.answers;
+        }
+
+        return updatedQuestion;
+      },
+    );
+
     existingSurveyData.questions.forEach((existingQuestion) => {
       if (existingQuestion.questionType === "imageChoice") {
         existingQuestion.options.forEach(async (existingOption) => {
