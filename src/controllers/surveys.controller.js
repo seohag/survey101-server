@@ -59,12 +59,6 @@ exports.getAllSurveys = async (req, res, next) => {
       next(error);
     }
 
-    if (!surveys || surveys.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "해당 유저가 만든 설문이 없습니다." });
-    }
-
     res.status(201).json(surveys);
   } catch (error) {
     error.message = errors.INTERNAL_SERVER_ERROR.message;
