@@ -369,13 +369,21 @@ exports.deleteSurvey = async (req, res, next) => {
       return res.status(404).json({ error: "존재하지 않는 설문입니다." });
     }
 
-    targetSurvey.questions.forEach((question) => {
-      question.options.forEach(async (option) => {
-        if (option.image && option.image.optionId) {
-          await deleteImageFromS3(option.image.optionId);
-        }
-      });
-    });
+    if (targetSurvey.coverImage && targetSurvey.coverImage.imageId) {
+      await deleteImageFromS3(targetSurvey.coverImage.imageId);
+    }
+
+    await Promise.all(
+      targetSurvey.questions.map(async (question) => {
+        return Promise.all(
+          question.options.map(async (option) => {
+            if (option.image && option.image.imageId) {
+              await deleteImageFromS3(option.image.imageId);
+            }
+          }),
+        );
+      }),
+    );
 
     await Survey.findByIdAndDelete(surveyid);
 
