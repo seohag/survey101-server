@@ -370,7 +370,6 @@ exports.deleteSurvey = async (req, res, next) => {
     }
 
     if (targetSurvey.coverImage && targetSurvey.coverImage.imageId) {
-      console.log("커버이미지 삭제!");
       await deleteImageFromS3(targetSurvey.coverImage.imageId);
     }
 
