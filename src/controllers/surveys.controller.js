@@ -370,20 +370,17 @@ exports.deleteSurvey = async (req, res, next) => {
     }
 
     if (targetSurvey.coverImage && targetSurvey.coverImage.imageId) {
+      console.log("커버이미지 삭제!");
       await deleteImageFromS3(targetSurvey.coverImage.imageId);
     }
 
-    await Promise.all(
-      targetSurvey.questions.map(async (question) => {
-        return Promise.all(
-          question.options.map(async (option) => {
-            if (option.image && option.image.imageId) {
-              await deleteImageFromS3(option.image.imageId);
-            }
-          }),
-        );
-      }),
-    );
+    targetSurvey.questions.forEach((question) => {
+      question.options.forEach(async (option) => {
+        if (option.image && option.image.optionId) {
+          await deleteImageFromS3(option.image.optionId);
+        }
+      });
+    });
 
     await Survey.findByIdAndDelete(surveyid);
 
