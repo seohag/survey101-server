@@ -58,7 +58,10 @@ exports.submitResponse = async (req, res, next) => {
       );
 
       if (question) {
-        question.answers.push({ answerValue: answer });
+        question.answers.push({
+          answerValue: answer,
+          createdAt: new Date(),
+        });
       }
     }
 
@@ -85,9 +88,15 @@ exports.getSurveyResponses = async (req, res, next) => {
 
     targetSurvey.questions.forEach((question) => {
       question.answers.forEach((answer) => {
+        const createdAtUTC = new Date(answer.createdAt);
+        const createdAtKST = new Date(
+          createdAtUTC.getTime() + 9 * 60 * 60 * 1000,
+        );
+
         responses.push({
           questionText: question.questionText,
           answerValue: answer.answerValue,
+          createdAt: createdAtKST.toISOString(),
         });
       });
     });
@@ -98,7 +107,6 @@ exports.getSurveyResponses = async (req, res, next) => {
       responses: responses,
     });
   } catch (error) {
-    error.message = errors.INTERNAL_SERVER_ERROR.message;
-    error.status = errors.INTERNAL_SERVER_ERROR.status;
+    next(error);
   }
 };
