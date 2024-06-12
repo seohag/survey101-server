@@ -13,7 +13,7 @@
 
 # 🔗 링크
 
-[Backend Repo](https://github.com/seohag/survey101-server) | [Deployed web](https://web.survey101.site/) | [Notion Link](https://yummy-saw-ada.notion.site/Survey-101-1c8b8c8b46f94e7fb771455032a82a6f?pvs=4)
+[FrontEnd Repo](https://github.com/seohag/survey101-client) | [Deployed web](https://web.survey101.site/) | [Notion Link](https://yummy-saw-ada.notion.site/Survey-101-1c8b8c8b46f94e7fb771455032a82a6f?pvs=4)
 
 <br>
 <br>
