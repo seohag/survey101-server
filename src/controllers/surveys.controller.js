@@ -24,6 +24,7 @@ async function uploadImageToS3(file, optionId) {
 
     return { imageId, imageUrl };
   } catch (error) {
+    res.status(503).json({ message: "이미지 업로드 실패" });
     console.error("S3에 업로드 하는데 실패:", error);
   }
 }

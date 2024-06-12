@@ -1,17 +1,19 @@
+const mongoose = require("mongoose");
 const Survey = require("../models/Survey");
 const errors = require("../constants/error");
 
 exports.getPublicSurvey = async (req, res, next) => {
   const { surveyId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(surveyId)) {
+    return res.status(405).json({ error: "유효하지 않은 설문 ID입니다." });
+  }
+
   try {
-    const targetSurvey = await Survey.findById(surveyId);
+    const targetSurvey = await Survey.findById(surveyId).exec();
 
     if (!targetSurvey) {
-      const error = new Error(errors.INTERNAL_SERVER_ERROR);
-      error.status = errors.INTERNAL_SERVER_ERROR;
-
-      next(error);
+      return res.status(404).json({ error: "존재하지 않는 설문입니다." });
     }
 
     const survey = {
@@ -32,6 +34,7 @@ exports.getPublicSurvey = async (req, res, next) => {
 
     res.status(201).json(survey);
   } catch (error) {
+    console.error(error);
     error.message = errors.INTERNAL_SERVER_ERROR.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;
   }
