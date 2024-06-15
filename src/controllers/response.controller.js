@@ -1,8 +1,13 @@
+const mongoose = require("mongoose");
 const Survey = require("../models/Survey");
 const errors = require("../constants/error");
 
 exports.getPublicSurvey = async (req, res, next) => {
   const { surveyId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(surveyId)) {
+    return res.status(405).json({ error: "유효하지 않은 설문 ID입니다." });
+  }
 
   try {
     const targetSurvey = await Survey.findById(surveyId).exec();
@@ -54,13 +59,6 @@ exports.submitResponse = async (req, res, next) => {
       const question = survey.questions.find(
         (question) => question.questionId === questionId,
       );
-
-      if (question) {
-        question.answers.push({
-          answerValue: answer,
-          createdAt: new Date(),
-        });
-      }
     }
 
     await survey.save();
