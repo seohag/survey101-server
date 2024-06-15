@@ -59,6 +59,13 @@ exports.submitResponse = async (req, res, next) => {
       const question = survey.questions.find(
         (question) => question.questionId === questionId,
       );
+
+      if (question) {
+        question.answers.push({
+          answerValue: answer,
+          createdAt: new Date(),
+        });
+      }
     }
 
     await survey.save();
