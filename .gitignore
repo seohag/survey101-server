@@ -4,6 +4,7 @@ node_modules
 .vscode/*
 .eslintcache
 .eslintignore
+coverage
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
