@@ -1,4 +1,4 @@
-const ERROR_PATTERNS = require("../src/constants/error");
+const ERROR_PATTERNS = require("../constants/error");
 
 describe("ERROR_PATTERNS", () => {
   it("NOT_AUTHORIZED 에러 패턴이 올바른지 확인해야 한다", () => {

@@ -1,7 +1,7 @@
 const {
   TWO_WEEKS_IN_MILLISECONDS,
   TWO_HOUR_IN_MILLISECONDS,
-} = require("../src/constants/jwtContants");
+} = require("../constants/jwtContants");
 
 describe("jwtContants Constants", () => {
   test("TWO_WEEKS_IN_MILLISECONDS가 알맞게 계산되어야 한다.", () => {

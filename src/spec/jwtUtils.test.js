@@ -1,16 +1,16 @@
 const jwt = require("jsonwebtoken");
-const User = require("../src/models/User");
+const User = require("../models/User");
 const {
   generateAccessToken,
   generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
-} = require("../src/utils/jwtUtils");
-const CONFIG = require("../src/config/index");
-const errors = require("../src/constants/error");
+} = require("../utils/jwtUtils");
+const CONFIG = require("../config/index");
+const errors = require("../constants/error");
 
 jest.mock("jsonwebtoken");
-jest.mock("../src/models/User");
+jest.mock("../models/User");
 
 describe("JWT Utils 테스트", () => {
   const mockUser = { _id: "testUserId", refreshToken: "mockRefreshToken" };
@@ -22,7 +22,7 @@ describe("JWT Utils 테스트", () => {
   });
 
   describe("generateAccessToken", () => {
-    test("access token을 생성해야 합니다", () => {
+    it("access token을 생성해야 합니다", () => {
       jwt.sign.mockReturnValue(accessToken);
 
       const token = generateAccessToken(mockUser);
@@ -37,7 +37,7 @@ describe("JWT Utils 테스트", () => {
   });
 
   describe("generateRefreshToken", () => {
-    test("refresh token을 생성해야 합니다", () => {
+    it("refresh token을 생성해야 합니다", () => {
       jwt.sign.mockReturnValue(refreshToken);
 
       const token = generateRefreshToken(mockUser);
@@ -52,7 +52,7 @@ describe("JWT Utils 테스트", () => {
   });
 
   describe("verifyAccessToken", () => {
-    test("유효한 access token을 검증해야 합니다", () => {
+    it("유효한 access token을 검증해야 합니다", () => {
       jwt.verify.mockReturnValue({ userId: mockUser._id });
 
       const result = verifyAccessToken(accessToken);
@@ -61,7 +61,7 @@ describe("JWT Utils 테스트", () => {
       expect(result).toEqual({ isValidate: true, userId: mockUser._id });
     });
 
-    test("유효하지 않은 access token을 검증해야 합니다", () => {
+    it("유효하지 않은 access token을 검증해야 합니다", () => {
       const errorMessage = "Invalid token";
       jwt.verify.mockImplementation(() => {
         throw new Error(errorMessage);
@@ -78,7 +78,7 @@ describe("JWT Utils 테스트", () => {
   });
 
   describe("verifyRefreshToken", () => {
-    test("유효한 refresh token을 검증해야 합니다", async () => {
+    it("유효한 refresh token을 검증해야 합니다", async () => {
       User.findById.mockResolvedValue(mockUser);
       jwt.verify.mockReturnValue({ userId: mockUser._id });
 
@@ -90,7 +90,7 @@ describe("JWT Utils 테스트", () => {
       expect(result).toBe(true);
     });
 
-    test("유효하지 않은 refresh token을 검증해야 합니다", async () => {
+    it("유효하지 않은 refresh token을 검증해야 합니다", async () => {
       User.findById.mockResolvedValue(mockUser);
       jwt.verify.mockImplementation(() => {
         throw new Error("Invalid token");
@@ -104,7 +104,7 @@ describe("JWT Utils 테스트", () => {
       expect(result).toBe(false);
     });
 
-    test("refresh token이 일치하지 않는 경우 검증 실패해야 합니다", async () => {
+    it("refresh token이 일치하지 않는 경우 검증 실패해야 합니다", async () => {
       User.findById.mockResolvedValue(mockUser);
 
       const next = jest.fn();
@@ -118,7 +118,7 @@ describe("JWT Utils 테스트", () => {
       expect(result).toBe(false);
     });
 
-    test("User.findById에서 에러가 발생한 경우 INTERNAL_SERVER_ERROR를 반환해야 합니다", async () => {
+    it("User.findById에서 에러가 발생한 경우 INTERNAL_SERVER_ERROR를 반환해야 합니다", async () => {
       User.findById.mockImplementation(() => {
         throw new Error("Database error");
       });

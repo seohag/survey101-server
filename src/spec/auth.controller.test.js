@@ -1,15 +1,15 @@
 const request = require("supertest");
 const express = require("express");
-const User = require("../src/models/User");
-const errors = require("../src/constants/error");
-const authController = require("../src/controllers/auth.controller");
+const User = require("../models/User");
+const errors = require("../constants/error");
+const authController = require("../controllers/auth.controller");
 const {
   generateAccessToken,
   generateRefreshToken,
-} = require("../src/utils/jwtUtils");
+} = require("../utils/jwtUtils");
 
-jest.mock("../src/models/User");
-jest.mock("../src/utils/jwtUtils");
+jest.mock("../models/User");
+jest.mock("../utils/jwtUtils");
 
 const app = express();
 app.use(express.json());
