@@ -1,3 +1,5 @@
+jest.setTimeout(30000);
+
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
 
@@ -5,8 +7,16 @@ let mongoServer;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  await mongoose.connect(uri);
+  const mongoUri = mongoServer.getUri();
+
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+
+  await mongoose.connect(mongoUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 });
 
 afterAll(async () => {
@@ -15,9 +25,6 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  const collections = await mongoose.connection.db.collections();
-
-  for (let collection of collections) {
-    await collection.deleteMany();
-  }
+  jest.clearAllMocks();
+  await mongoose.connection.db.dropDatabase();
 });

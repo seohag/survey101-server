@@ -1,11 +1,7 @@
 const jwt = require("jsonwebtoken");
 const createError = require("http-errors");
 
-const {
-  generateAccessToken,
-  verifyAccessToken,
-  verifyRefreshToken,
-} = require("../utils/jwtUtils");
+const { verifyAccessToken } = require("../utils/jwtUtils");
 
 const User = require("../models/User");
 const errors = require("../constants/error");
