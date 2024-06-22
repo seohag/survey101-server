@@ -8,7 +8,6 @@ const UserSchema = new mongoose.Schema({
   },
   username: {
     type: String,
-    required: true,
   },
   refreshToken: {
     type: String,
