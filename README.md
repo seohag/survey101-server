@@ -13,7 +13,7 @@
 
 # 🔗 링크
 
-[Frontend Repo](https://github.com/seohag/survey101-client) | [Deployed web](https://web.survey101.site/) | [Notion Link](https://yummy-saw-ada.notion.site/Survey-101-1c8b8c8b46f94e7fb771455032a82a6f?pvs=4)
+[Fronend Repo](https://github.com/seohag/survey101-client) | [Deployed web](https://web.survey101.site/) | [Notion Link](https://yummy-saw-ada.notion.site/Survey-101-1c8b8c8b46f94e7fb771455032a82a6f?pvs=4)
 
 <br>
 <br>
@@ -23,14 +23,13 @@
 - [개발 동기](#-개발-동기)
 - [기능 미리보기 및 간단한 설명](#-기능-미리보기-및-설명)
 - [테크 스택](#-테크-스택)
-  - [React](#리액트는-왜-쓸까)
   - [Vite](#vite-사용이유)
-  - [Zustand/Tanstack Query](#zustand와-tanstack-query를-사용한-이유)
   - [FormData](#html-navive-form이나-form에-관한-라이브러리가-아닌-formdata를-사용한-이유)
 - [기술적 챌린지](#-기술적-챌린지)
   - [컴포넌트 모듈화](#컴포넌트-모듈화)
     - [가독성이 좋지 않은 코드와 동일한 코드 반복 작성](#가독성이-좋지-않은-코드와-동일한-코드-반복-작성)
-    - [합성 컴포넌트 패턴으로 컴포넌트 분리](#합성-컴포넌트-패턴으로-컴포넌트-분리)
+    - [질문 타입에 따라 컴포넌트 분리](#질문-타입에-따라-컴포넌트-분리)
+    - [합성 패턴을 이용한 관심사 분리](#합성-컴포넌트-패턴을-이용한-관심사-분리)
     - [컴포넌트를 분리한 결과](#컴포넌트를-분리한-결과)
   - [설문 데이터의 구조 설계](#설문-데이터-구조-설계)
     - [프로젝트에 적합한 데이터 구조는 무엇일까?](#프로젝트에-적합한-데이터-구조는-무엇일까)
@@ -172,43 +171,13 @@
 ![](https://img.shields.io/badge/-jest-%23C21325?style=flat-square&logo=jest&logoColor=white)
 
 <br>
-
-### 리액트는 왜 쓸까?
-
-리액트를 왜 사용하느냐에 대한 질문을 스스로 해보니, 가장 인기있어서 라는 이유만으로는 명확한 답변이 되지 않아, 리액트의 장점과 왜 사용하는지 여러 자료들을 조사해 보았습니다. 우선 npm trends의 그래프를 보니 여전히 리액트가 뷰와 앵귤러보다 많은 다운로드 수를 기록하고 있었습니다. 아직 많은 기업들이 리액트 개발자를 필요로 하는것은 증명이 된 것이고, 단지 여러 곳에서 많이 사용한다는 이유말고도 다른 이유들을 몇가지 찾아보았습니다.
-
-리액트만의 장점은 아니지만 SPA, CSR은 리액트의 주요한 장점이긴 합니다. SSR을 사용할 때에는 변화가 있을 때마다 새롭게 전체 페이지를 다시 로드해야해서 비효율적이란 단점이 있었지만, CSR은 SSR과 달리 서버로부터 데이터를 받아서 클라이언트에서 렌더링 하는 방식이기 때문에 바뀐 부분의 데이터가 있는 화면만 새롭게 렌더링함으로서 사용자 경험을 높여주는 장점이 있습니다. 또한 리액트는 CSR과 SSR을 함께 사용할 수 있다는게 다른 프레임워크보다 인기 있었던 이유 중 하나 입니다.
-
-<p>
-<img width="400" height="284" alt="스크린샷 2024-06-12 17 15 13" src="https://github.com/seohag/survey101-server/assets/126459089/e1114327-3ede-4977-ac53-4f5024b0c8b1">
-<img width="400" alt="스크린샷 2024-06-12 17 12 21" src="https://github.com/seohag/survey101-server/assets/126459089/e22f89cc-aaea-48a0-a414-1b48fd6fc376">
-</p>
-
-<br>
-
-리액트는 화면 한 부분 부분들을 컴포넌트 단위로 나눌 수 있으며 독립적으로 관리할 수 있습니다. 이는 역할과 기능에 따라 관리하기 용이하단 이야기이고, 반복되는 부분을 대체할 수 있게 해주며 코드 재사용성을 높여주고 가상돔으로 인한 빠른 속도라는 장점이 있습니다. 그리고 또한 가상돔을 이용해 실제 DOM 조작하는 횟수를 줄여주는데, 데이터가 변경되면 -> 가상 DOM을 렌더링하고 -> 이전 가상 DOM과 비교해 -> 변경된 부분을 실제 DOM에 적용하는 렌더링 방식을 제공하며 애플리케이션의 규모가 클수록 더 많은 횟수를 줄여준다고 합니다.
-
-<img width="500" height="230" alt="스크린샷 2024-06-03 10 23 45" src="https://github.com/seohag/survey101-client/assets/126459089/e8a2bf5b-dec0-46f0-a922-6d3162f18195">
-
-<br>
-
-다른 큰 장점은 바로 **선언형과 간결성** 입니다.
-
-상호작용이 많은 UI를 만들 때 생기는 어려움을 줄여주고, 각 상태에 대한 간단한 뷰만 설계할 수 있도록 도와줍니다. React는 데이터가 변경됨에 따라 적절한 컴포넌트만 효율적으로 갱신하고 렌더링합니다. 이로인한 선언형 뷰는 코드를 예측 가능하고 디버깅하게 쉽게 만들어줍니다. 또한 리액트는 Controller, Model을 사용하는 대신 Flux 구조에 따라 Action -> Dispatcher -> Store의 단방향 데이터 흐름을 사용함으로써 오직 View에만 집중할 수 있는 장점또한 있습니다.
-
-<img width="500" height="230" alt="스크린샷 2024-06-03 19 28 37" src="https://github.com/seohag/survey101-client/assets/126459089/685442c7-141e-411f-a05a-df1672cc8ebf">
-
-<br>
-
-이렇게 조사한 내용들로 React가 어떠한 장점들이 있는지 알게 되었고, 단지 많이 사용한다는 이유만이 아닌 여러 가지 장점들을 찾아보니 "아직은 리액트를 사용하는 것이 적절하겠구나" 라는 판단하에 리액트를 프로젝트에 사용하는 것으로 결정하게 되었습니다.
-
 <br>
 
 ### Vite 사용이유
 
 우선 리액트 프로젝트를 생성하기 위한 방법들을 찾아보았고, CRA, Vite, Webpack 등을 사용해서 프로젝트를 생성할 수 있다는 것을 찾아보았습니다. Vite에 대해 조사해보니 빠르고 간결한 모던 웹 프로젝트 개발 빌드 도구 라는 내용이 나와있습니다. 그리고 **번들링**이란 단어에 대해서 더 조사해 보았습니다.
 
-프론트엔드 개발은 모듈 단위로 파일을 엮어서 개발하는 방식입니다. 각 모듈은 서로 의존성을 띄고 있기 때문에 수많은 모듈들의 순서를 어떻게 처리할 것인지, 모듈이 많아질수록 HTTP 요청이 많아질텐데 이로 인한 오베헤드는 어떻게 해결할 것이며 ES6+ 스펙의 코드를 어떻게 처리할 것인지에 등의 문제들이 발생합니다. 이러한 문제들을 해결하기 위해 등장한 것이 모듈 번들러입니다.
+프론트엔드 개발은 모듈 단위로 파일을 엮어서 개발하는 방식입니다. 각 모듈은 서로 의존성을 띄고 있기 때문에 수많은 모듈들의 순서를 어떻게 처리할 것인지, 모듈이 많아질수록 HTTP 요청이 많아질텐데 이로 인한 오버헤드는 어떻게 해결할 것이며 ES6+ 스펙의 코드를 어떻게 처리할 것인지에 등의 문제들이 발생합니다. 이러한 문제들을 해결하기 위해 등장한 것이 모듈 번들러입니다.
 
 모듈 번들러는 분리된 코드 조각들을 하나로 병합하는 개발 도구이며 핵심 작업은 JS 파일, CSS 파일 등 여러 리소스를 하나로 결합하여 단일 파일을 만드는 것입니다. 한 번의 요청으로 파일을 받아올 수 있기 때문에 로딩 속도에서의 이점이 있고 JS 압축, CSS 전처리기 변환과 같은 작업 등을 자동화 해줍니다. 모듈 번들러는 Webpack, Rollup 처럼 다양한 도구가 존재하고, Webpack과 Vite에 대해서 조사해 보았습니다.
 
@@ -221,7 +190,7 @@
 
 - Vite에 대해 더 조사해 보았습니다. Vite는 "빠른" 자바스크립트 번들링 툴로, EsBuild 번들링을 통해 개발 환경에서 높은 속도를 자랑합니다. Vite가 빠른 이유는 dependencies(Esbuild) 그리고 source code 두 가지 카테고리로 나누어 개발 서버를 시작하기 때문이라고 조사했습니다. 기본적으로 Hot Module Replacement(앱을 종료하지 않고 갱신된 파일만을 교체하는 방식)을 포함한 빠르고 간단한 개발 서버를 제공하며 기본 환경설정이 간단했고, 프로덕션 빌드 시 Rollup을 사용하여 코드를 최적화합니다. 불필요한 코드를 효과적으로 트리쉐이킹하여 제거하고, 결과물의 파일 크기를 최소화 하는 장점도 있었습니다.
 
-- CRA는 사용하지 않는 기능들까지 모두 설치되기 때문에 모듈 사이즈가 크다는 단점이 있고 커스텀 빌드를 하는 것이 어렵습니다. 또한 빌드 시간이 Vite에 비해 많이 느렸습니다.WebPack 과 비교했을 땐 Webpack은 초기 빌드 속도가 느릴 수 있지만, Vite는 개발 서버를 통해 빠른 번들링 속도를 제공하고 파일을 필요할 때마다 필요한 모듈만 번들링하여 신속한 개발이 가능하다고 합니다.
+- CRA는 사용하지 않는 기능들까지 모두 설치되기 때문에 모듈 사이즈가 크다는 단점이 있고 커스텀 빌드를 하는 것이 어렵습니다. 또한 빌드 시간이 Vite에 비해 많이 느렸습니다. WebPack 과 비교했을 땐 Webpack은 초기 빌드 속도가 느릴 수 있지만, Vite는 개발 서버를 통해 빠른 번들링 속도를 제공하고 파일을 필요할 때마다 필요한 모듈만 번들링하여 신속한 개발이 가능하다고 합니다.
 
 Vite가 타 비교군에 비해 많은 장점을 가지는 조사한 내용들을 바탕으로 Vite를 번들러로 선정 후 프로젝트를 진행하였습니다.
 
@@ -237,53 +206,6 @@ Vite가 타 비교군에 비해 많은 장점을 가지는 조사한 내용들�
 | 프로덕션 빌드 최적화 | Rollup을 사용하여 최적화      | 다양한 플러그인을 통한 최적화   | CRA 설정에 따라 다름            |
 | 트리 쉐이킹          | 효과적으로 불필요한 코드 제거 | 일부 기능을 제공 (Tree Shaking) | 일부 기능을 제공 (Tree Shaking) |
 | 파일 크기 최소화     | 효과적으로 최소화             | 일부 최적화                     | 일부 최적화                     |
-
-<br>
-
-### Zustand와 Tanstack Query를 사용한 이유
-
-설문을 커스터마이징 하고, 커스터마이징한 설문을 데이터베이스에 저장하고 불러오는 등의 작업들을 하다보면 클라이언트와 서버와의 상호작용이 잦았습니다. 설문 양식을 생성, 수정, 삭제 하는 등 CRUD 작업이 많은 프로젝트였기에 클라이언트에 저장되는 데이터들은 변화되기 쉬운 성격을 가지고 있었습니다. 그렇기에 중앙에서 상태를 관리함으로써 상태의 일관성을 유지하고, 상태 업데이트 로직을 한 곳에서 관리하며 상태관리에 대해 복잡성을 줄이기 위해 상태관리 툴을 조사 후 도입해 보았습니다.
-
-<img width="600" alt="스크린샷 2024-06-12 17 31 01" src="https://github.com/seohag/survey101-server/assets/126459089/4676cbe8-1c95-4315-96b6-132f27e79154">
-
-</br>
-</br>
-
-Survey101에서는 다양한 형태의 질문, 각 질문에 대한 옵션, 응답 데이터 등을 관리해야 했고, 복잡한 상태를 클라이언트 측에서 효율적으로 관리할 상태관리 툴이 필요했습니다. 여러 툴들 중 Zustand에 대해서 다음과 같이 조사해 보았습니다.
-
-- Zustand는 중앙집중화된 하나의 store 안에 여러 상태들을 담고, Top-down 방식으로 Flux 원칙을 적용한 상태관리를 적용하며 간단한 상태 관리 방법을 제공해줍니다. 또한 PubSub(발행/구독) 모델을 기반으로 만들어졌으며, 스토어의 상태 변경이 일어날 때 리스너 함수를 모았다가 상태가 변경되면 그때 리스너들에게 상태가 변경되었다고 알려줍니다.
-
-- 사용자가 설문에 대한 질문을 추가하거나 수정할 때 다른 부분의 상태와 충돌 없이 일관된 상태를 유지해야 하는 이유도 있었고, 설문조사를 커스터마이징 하는 화면에서 여러 컴포넌트가 동일한 상태를 공유하고 업데이트 해야했기에, Zustand를 사용해서 전역상태로 공유하였습니다. 상태의 변경,조회,구독 등을 통해서만 스토어를 다루고, 실제 상태는 컴포넌트 생명주기 내에 의도치 않게 변경되는 것을 막아줍니다.
-
-- selector 함수로 가져온 상태는 store에 중앙집권화 되어있는 상태와 독립적으로 관리되기 때문에 컴포넌트가 필요한 상태에 집중할 수 있고, 상태의 변경에 따라 필요한 부분만 업데이트 되는 이유와, 별도의 리듀서, 액션, 미들웨어 없이 상태관리가 가능하고, 컴포넌트 간의 상태 공유를 용이하게 해주는 장점이 있다고 조사했습니다.
-
-- persist라는 기능도 제공하고 있었습니다. 상태를 로컬 스토리지나 세션스토리지에 저장하고 복원하는데 사용되는데, Survey101의 특성 상 로그인을 한 유저의 정보를 새로고침 했을 때도 사라지지 않게 유지하기 위해 해당 기능을 사용했습니다.
-
-<img width="600" alt="스크린샷 2024-06-12 17 32 11" src="https://github.com/seohag/survey101-server/assets/126459089/a4a24a3d-8f86-441b-96f1-ed095067eba8">
-
-</br>
-</br>
-
-서버와 클라이언트 간의 데이터가 같은 데이터임에도 시점 차이로 인한 클라이언트와 서버와의 데이터가 달라질 수 있는 상황이 있을 가능성이 있었습니다. 데이터의 정확성과 일관성 유지를 위해 클라이언트와 서버의 상태를 분리해서 관리했고, **Tanstack Query**의 상태관리의 이점들을 활용하고자 선택하였습니다.
-
-Tanstack Query(React Query)는 다음과 같은 장점들이 있습니다.
-
-1. 간편한 데이터 관리: 데이터 가져오기, 캐싱, 동기화 및 업데이트 처리를 간편하게 할 수 있게 해줍니다.
-2. 실시간 업데이트 및 동기화: 실시간 데이터 업데이트와 자동 동기화를 지원하여 서버와 클라이언트 데이터의 일관성을 유지할 수 있습니다.
-3. 서버 상태 관리: 서버 상태 관리 (로딩, 에러, 성공 등의 상태) 를 제공하는 옵션들을 통해 간편하게 처리할 수 있습니다.
-4. 설치 후 최상위 컴포넌트를 QueryClientProvider로 감싸줌으로써 간단한 설정으로도 사용 가능합니다.
-
-<br>
-
-- 데이터 캐싱 기능 또한 제공 해주는데, 서버에서 가져온 데이터를 queryClient에 담아 클라이언트에서 서버 측으로 다른 요청이 없는 한 다시 서버로 재요청하지 않고, 캐싱되어있던 데이터를 다시 반환해주기 때문에 불필요한 요청을 최소화할 수 있는 장점도 있었습니다.
-- fresh / stale 시간을 기준으로 데이터의 상태가 최초에 서버로부터 전달받아 캐싱되어 있던 상태라는 가정하에 만료되었다면 재요청하고, 만료되지 않았다면 캐싱된 데이터를 반환하는 기능을 가지고 있습니다. 따라서 캐싱이 필요한 컴포넌트마다 Tanstack Query 의 queryClient와 만료시간을 활용해서 재요청을 최소화 하는 용도로 사용하였습니다.
-
-<img width="600" height="auto" alt="스크린샷 2024-06-12 17 35 23" src="https://github.com/seohag/survey101-server/assets/126459089/2931099a-e3d8-4368-b5cb-6747565aaff5">
-
-</br>
-</br>
-
-조사한 내용들을 바탕으로 `Tanstack Query`로는 서버로의 데이터 페칭 및 데이터 캐싱을 담당하게 했고, `Zustand`로는 클라이언트 상태 관리 및 UI 업데이트를 담당하며 명확한 책임 분리를 하여 상태관리를 하였습니다.
 
 <br>
 
@@ -331,11 +253,11 @@ Tanstack Query(React Query)는 다음과 같은 장점들이 있습니다.
 
 프로젝트를 진행하던 중, 설문 미리보기, 그리고 답변 페이지가 비슷한 UI를 사용함에도 불구하고 동일한 코드를 반복해서 한 페이지 내에 조건부 렌더링으로 처리하고 있었습니다. 이러한 처리 방식은 코드 중복 작성을 초래했고, 유지 보수성을 떨어뜨리며 가독성을 저하시키는 문제점이 있었습니다.
 
-### 합성 컴포넌트 패턴으로 컴포넌트 분리
+### 질문 타입에 따라 컴포넌트 분리
 
-컴포넌트 분리에 대해 여러 정보들을 찾아보던 중 합성 컴포넌트 패턴이 문제를 해결하기에 적합하다는 판단 하에 프로젝트에 적용해 보았습니다.
+컴포넌트 분리에 대해 여러 정보들을 찾아보던 중 팩토리 패턴을 이용해서 "질문 타입에 따라 다른 inputField를 생성 해보자" 라는 생각으로 `inputFields` 라는 객체를 한개 만들어 객체 생성의 책임을 위임하고, 그리고 질문 타입에 따라 그에 맞는 `InputField` 를 렌더링 하게끔 맵핑하였습니다.
 
-우선 아래 예시 코드를 보았을 때, `QuestionPreview` 라는 컴포넌트 내에서 (textChoice, imageChoice 등)을 조건부 렌더링으로 처리하면서 코드가 복잡해지고, 특정 질문 타입을 수정할 때마다 `QuestionPreview` 컴포넌트의 모든 코드를 읽으며 특정 질문 타입을 찾아서 직접적으로 수정해야만 했습니다.
+우선 아래 예시 코드를 보면, `QuestionPreview` 컴포넌트 내에서 (textChoice, imageChoice 등) 을 조건부 렌더링으로 처리하면서 코드가 복잡하고, 특정 질문 타입을 수정할 때마다 컴포넌트 내의 모든 코드를 읽으며 특정 질문 타입을 찾아서 수정해야만 하는 번거로움이 있었습니다.
 
 <br>
 
@@ -400,41 +322,46 @@ export default QuestionPreview;
 <br>
 
 ```jsx
-
-import TextChoiceQuestion from "./TextChoiceQuestion";
-import ImageChoiceQuestion from "./ImageChoiceQuestion";
-import TextInputQuestion from "./TextInputQuestion";
+import PreviewQuestionComponent from "./PreviewQuestionComponent";
+import TextChoiceField from "./TextChoiceField";
+import TextInputField from "./TextInputField";
 ...
 
-const questionComponents = {
-  textChoice: TextChoiceQuestion,
-  imageChoice: ImageChoiceQuestion,
-  textInput: TextInputQuestion,
+const inputFields = {
+  textChoice: TextChoiceField,
+  textInput: TextInputField,
   ...
 };
 
+const inputQuestionTypes = [
+  "textInput",
+  "emailInput",
+  ...
+];
+
 function QuestionPreview({ selectedQuestionId }) {
-  const { questions, styleData } = useFormEditorStore();
+  const { questions } = useFormEditorStore();
+
   const selectedQuestion = questions.find(
     (question) => question.questionId === selectedQuestionId,
   );
 
-  if (!selectedQuestion) {
-    return null;
-  }
+  const questionIndex = questions.findIndex(
+    (question) => question.questionId === selectedQuestionId,
+  );
 
-  const SpecificQuestionComponent = questionComponents[selectedQuestion.questionType];
+  const InputField =
+    selectedQuestion && inputFields[selectedQuestion.questionType];
 
   return (
     <>
       <div className="text-center">
         <div className="p-4 border border-gray-300">
-          <h3 className="text-xl font-bold mb-4">
-            {selectedQuestion.questionText}
-          </h3>
-          {SpecificQuestionComponent && (
-            <SpecificQuestionComponent
-              styleData={styleData}
+          {selectedQuestion && (
+            <PreviewQuestionComponent
+              questionText={selectedQuestion.questionText}
+              questionIndex={questionIndex}
+              inputField={InputField}
               options={selectedQuestion.options}
             />
           )}
@@ -447,24 +374,29 @@ function QuestionPreview({ selectedQuestionId }) {
 export default QuestionPreview;
 ```
 
-- 합성 컴포넌트 패턴을 적용시켜 관심사를 분리한 코드 (to-be)
+- 팩토리 패턴을 적용시켜 관심사를 분리한 코드 (to-be)
 
 <br>
 
 ```plaintext
-QuestionPreview
+├── import TextChoiceField from "./TextChoiceField"
+├── import ImageChoiceField from "./ImageChoiceField"
+├── import TextInputField from "./TextInputField"
+│   ...
 │
-├── import TextChoiceQuestion from "./TextChoiceQuestion"
-├── import ImageChoiceQuestion from "./ImageChoiceQuestion"
-├── import TextInputQuestion from "./TextInputQuestion"
-...
-│
-├── const questionComponents = {
-│   ├── textChoice: TextChoiceQuestion
-│   ├── imageChoice: ImageChoiceQuestion
-│   ├── textInput: TextInputQuestion
+├── const inputFields = {
+│   ├── textChoice: TextChoiceField
+│   ├── imageChoice: ImageChoiceField
+│   ├── textInput: TextInputField
 │   ...
 │   }
+│
+├── const inputQuestionTypes = [
+│   ├── "textInput"
+│   ├── "emailInput"
+│   ├── "phoneInput"
+│   ...
+│   ]
 │
 ├── function QuestionPreview({ selectedQuestionId })
 │   ├── useFormEditorStore()
@@ -475,21 +407,34 @@ QuestionPreview
 │   │     └── (question) => question.questionId === selectedQuestionId
 │   │   )
 │   │
-│   ├── const SpecificQuestionComponent = questionComponents[selectedQuestion.questionType]
+│   ├── const questionIndex = questions.findIndex(
+│   │     └── (question) => question.questionId === selectedQuestionId
+│   │   )
+│   │
+│   ├── const InputField = selectedQuestion && inputFields[selectedQuestion.questionType]
+│   │
+│   ├── const showNextButton = inputQuestionTypes.includes(
+│   │     └── selectedQuestion?.questionType
+│   │   )
 │   │
 │   └── return (
 │       ├── <div>
+│           ├── <span>미리보기</span>
 │           ├── <div>
-│               ├── <div>
-│                   ├── <h3>
-│                   │   └── {selectedQuestion.questionText}
-│                   │
-│                   ├── {SpecificQuestionComponent && (
-│                   │   ├── <SpecificQuestionComponent
-│                   │   │   ├── styleData={styleData}
-│                   │   │   └── options={selectedQuestion.options}
-│                   │   └── )}
-│                   └── )}
+│               ├── {selectedQuestion && (
+│                   ├── <div>
+│                       ├── <PreviewQuestionComponent
+│                       │   ├── questionText={selectedQuestion.questionText}
+│                       │   ├── questionIndex={questionIndex}
+│                       │   ├── inputField={InputField}
+│                       │   ├── options={selectedQuestion.options}
+│                       │   └── showNextButton={showNextButton}
+│                       └── />
+│                   └── </div>
+│               └── )}
+│           └── </div>
+│       └── </div>
+│   )
 │
 └── export default QuestionPreview
 ```
@@ -498,18 +443,79 @@ QuestionPreview
 
 <br>
 
+분리한 코드에서는 각 질문 타입에 해당되는 컴포넌트에 역할을 위임하며 이를 통해 질문 타입들마다 컴포넌트를 독립적으로 관리할 수 있게 하며 가독성을 향상 시켰습니다. 또한 기존의 코드에선 하나의 컴포넌트 (`QuestionPreview`) 에서 많은 책임을 지고 있었고, 유지보수 할 때 모든 코드를 살펴봐야 했지만 컴포넌트를 분리함으로써 책임을 다른 컴포넌트로도 분산 시켰습니다.
+
+<br>
+
+## 합성 컴포넌트 패턴을 이용한 관심사 분리
+
+`PreviewQuestionComponent` 내부를 보면 `QuestionPreviewHeader`, `InputField`, 그리고 `CustonButton` 컴포넌트들로 이루어져 있고, QuestionType (inputType)에 따라 `inputField`를 동적으로 바뀌게끔 컴포넌트를 설계했습니다.
+
+```jsx
+import CustomButton from "../CustomButton";
+import QuestionPreviewHeader from "../shared/QuestionPreviewHeader";
+
+function PreviewQuestionComponent({
+  questionText,
+  questionIndex,
+  inputField: InputField,
+  options,
+  showNextButton,
+}) {
+  const { styleData } = useFormEditorStore();
+
+  return (
+    <div className="flex flex-col items-center">
+      <QuestionPreviewHeader
+        questionIndex={questionIndex}
+        questionText={questionText}
+        themeColor={styleData.themeColor}
+      />
+      <InputField options={options} />
+      {showNextButton && (
+        <CustomButton
+          text="다음"
+          themeColor={styleData.themeColor}
+          buttonShape={styleData.buttonShape}
+        />
+      )}
+    </div>
+  );
+}
+
+export default PreviewQuestionComponent;
+```
+
+<p>
+<img alt="스크린샷 2024-05-17 06 03 57" width="350" height="400" src="https://github.com/seohag/survey101-client/assets/126459089/7cb4cf85-852a-4827-bcc4-7281bc3b6df4">
+<img alt="스크린샷 2024-05-17 06 04 27" width="350" height="400" src="https://github.com/seohag/survey101-client/assets/126459089/8106137f-c5e7-45df-bd5d-2eef8439ac73">
+</p>
+
+이제 각 컴포넌트는 자신만의 역할을 가지고 있으며 서로 독립적으로 재사용할 수 있습니다. `PreviewQuestionComponent` 를 `QuestionPreviewHeader`, `CustionButton` 그리고 `InputField` 들로 조합해서 하나의 컴포넌트 형태로 설계하면서 재사용성을 향상 시켰고, 각 컴포넌트는 단일 책임 원칙을 지키게끔 수정했습니다. 이렇게 컴포넌트가 설계되면 요구사항에 따라 유연하게 각 역할을 하고 있는 컴포넌트를 수정하며 쉽게 변경 가능한 장점이 있습니다.
+
+<br>
+
 ### 컴포넌트를 분리한 결과
 
-합성 컴포넌트 패턴을 이용하여 코드를 분리함으로써 다음과 같은 이점을 얻을 수 있었습니다.
+코드를 모듈화 하면서 다음과 같은 이점을 얻을 수 있었습니다.
 
 - **재사용성 향상 및 코드 중복 최소화 (다양한 곳에서 재사용한 컴포넌트 생성 가능)**
-- **유지보수 용이 (개별 컴포넌트를 쉽게 업데이트 가능)**
+- **유지보수 용이 (질문에 대한 개별 컴포넌트를 쉽게 업데이트 가능)**
 - **가독성 및 관리성 향상 (코드 구조가 명확해지고 역할과 책임이 명확히 분리됨)**
+- **단일 책임 원칙 (각 컴포넌트는 하나의 책임만 가지게 설계되며, 기능을 더 명확하게 하고 디버깅이 쉬워짐)**
 - **확장성 (새로운 기능 추가 시 기존 코드를 크게 변경하지 않고도 확장 가능)**
 
-분리한 코드에서는 각 질문 타입에 해당되는 컴포넌트에 역할을 위임하며 이를 통해 질문 타입들마다 컴포넌트를 독립적으로 관리할 수 있고, 기존코드에 비해 가독성을 향상 시켰습니다. 또한 질문 미리보기와 비슷한 설문에 대한 답변을 하는 컴포넌트에서도 동일한 패턴을 이용해서 재사용성과 유연성을 향상 시킬 수 있었습니다. 기존의 코드에선 하나의 컴포넌트에서 많은 책임을 지고 있었기에 유지보수 할 때 모든 코드를 살펴봐야 했지만, 컴포넌트를 분리함으로써 단일 책임 원칙을 지킬 수 있게끔 하였습니다.
+<br>
 
-컴포넌트를 작성할때 리액트의 여러 디자인 패턴들을 활용하여 컴포넌트를 분리함으로써 코드의 재사용성 및 유지 보수성을 향상 시켜야 한다는 점을 배웠습니다. 이러한 패턴들을 사용하게되면 각 컴포넌트가 명확한 역할과 책임을 가지게 되어 유지보수가 용이해집니다. `QuestionPreview` 컴포넌트를 예로 들었을 때, 새로운 질문 타입이 추가될 때도 기존 코드를 최소한으로 수정하여 확장시킬 수 있었고, 앞으로도 이런 컴포넌트를 나누는 패턴들을 적극 활용하여 보다 모듈화되고 관리하기 쉬운 코드를 작성해야겠다고 느꼈습니다. 또한 분리 기준이 지금은 완전하게 세워져 있다고 생각하지 않기 때문에 앞으로도 컴포넌트를 분리할 때 좀 더 명확한 기준을 갖고 적절한 추상화 수준을 유지하도록 개선해보려고 합니다.
+여러개의 작은 컴포넌트들을 조합해서 더 큰 컴포넌트를 구성하는 방법 **"컴포지션"** 개념에 대해 더 조사해보니 객체지향 프로그래밍에서 코드를 재사용하기 위한 방법으로는 크게 **상속(Inheritance), 합성(Composition)** 등이 있다는 내용을 알게 되었습니다.
+
+상속은 간략히 이야기하면 is-a 관계로 상위 클래스에 중복 로직을 구현해두고 이를 물려받아 코드를 재사용하는 방법입니다. (부모 클래스에 정의된 메소드를 물려받아 사용)
+
+합성은 has-a 관계로 각각의 구성요소로 된 컴포넌트를 결합하여 더 큰 컴포넌트를 구성하는 방식입니다.
+
+프로그래밍을 할 때 신경써야 하는 것 중 하나가 중복을 제거하여 변경을 쉽게 만드는 것인데, 객체 지향 프로그래밍의 장점 중 하나는 코드를 재사용하여 중복을 제거하기에 용이하다는 것입니다. 그리고 리액트에서는 상속보다 합성을 사용해서 컴포넌트를 작성하는 것을 선호하는데 컴포넌트간 의존성을 제거하고, 교체를 쉽게하면서 설계를 유연하게 하는 장점을 가지기 때문에 합성 방식을 지향합니다.
+
+이러한 내용들을 조사해보면서 앞으로도 컴포넌트를 나누는 방법들을 학습해서 여러 디자인 패턴을 활용하여 보다 모듈화되고 관리하기 쉬운 코드를 작성해야겠다고 느꼈습니다. 또한 분리 기준이 지금은 명확하게 세워져 있다고 생각하지 않기 때문에 앞으로도 컴포넌트를 분리할 때 좀 더 명확한 기준을 갖고 적절한 추상화 수준을 유지하도록 개선해보려고 합니다.
 
 <br>
 <br>
